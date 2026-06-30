@@ -1,0 +1,373 @@
+/* PT. Dimas Febry Prasetyo - Website Company Profile 2026 */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Open+Sans:wght@300;400;500;600;700;800&display=swap');
+
+:root {
+  --primary-color: #0d6efd;
+  --primary-hover: #0b5ed7;
+  --accent-color: #25d366;
+  --accent-hover: #20ba59;
+  --font-sans: 'Inter', sans-serif;
+  --font-open-sans: 'Open Sans', sans-serif;
+}
+
+/* Light Theme Variables */
+[data-bs-theme="light"] {
+  --bg-color: #ffffff;
+  --surface-color: #f8f9fa;
+  --text-color: #212529;
+  --border-color: rgba(33, 37, 41, 0.08);
+  --card-bg: #ffffff;
+  --text-muted: #6c757d;
+  --navbar-bg: rgba(255, 255, 255, 0.85);
+  --modal-bg: #ffffff;
+}
+
+/* Dark Theme Variables */
+[data-bs-theme="dark"] {
+  --bg-color: #0c0e12;
+  --surface-color: #12161f;
+  --text-color: #f1f3f5;
+  --border-color: rgba(241, 243, 245, 0.08);
+  --card-bg: #161c28;
+  --text-muted: #adb5bd;
+  --navbar-bg: rgba(12, 14, 18, 0.85);
+  --modal-bg: #161c28;
+}
+
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 80px;
+}
+
+body {
+  font-family: var(--font-open-sans);
+  background-color: var(--bg-color);
+  color: var(--text-color);
+  transition: background-color 0.3s ease, color 0.3s ease;
+  overflow-x: hidden;
+}
+
+h1, h2, h3, h4, h5, h6, .font-heading {
+  font-family: var(--font-sans);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  background: var(--bg-color);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--border-color);
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--primary-color);
+}
+
+/* Sticky Smart Navbar */
+.navbar-custom {
+  background-color: transparent;
+  transition: all 0.3s ease;
+  border-bottom: 1px solid transparent;
+}
+
+.navbar-custom.scrolled {
+  background-color: var(--navbar-bg);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.03);
+  border-bottom: 1px solid var(--border-color);
+  padding-top: 10px;
+  padding-bottom: 10px;
+}
+
+/* Hero Section */
+.hero-section {
+  position: relative;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #090c10;
+  color: #ffffff;
+  overflow: hidden;
+  padding-top: 100px;
+  padding-bottom: 80px;
+}
+
+.hero-bg {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+}
+
+.hero-bg img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  opacity: 0.35;
+  filter: scale(1.02);
+}
+
+.hero-overlay {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 50% 50%, rgba(9, 12, 16, 0.4) 0%, rgba(9, 12, 16, 0.9) 100%);
+  z-index: 1;
+}
+
+.hero-content {
+  position: relative;
+  z-index: 2;
+  text-align: center;
+}
+
+/* Custom Buttons */
+.btn-round {
+  border-radius: 50px;
+  padding: 12px 30px;
+  font-family: var(--font-sans);
+  font-weight: 600;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.btn-round:hover {
+  transform: translateY(-2px);
+}
+
+/* Legal Box */
+.legal-box {
+  background-color: var(--surface-color);
+  border: 1px solid var(--border-color);
+  border-radius: 16px;
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.legal-box:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 30px rgba(13, 110, 253, 0.06);
+  border-color: var(--primary-color);
+}
+
+/* Visi Misi Cards */
+.vision-card {
+  background: linear-gradient(135deg, #0d6efd 0%, #0a4ebd 100%);
+  color: #ffffff;
+  border-radius: 24px;
+  padding: 40px;
+}
+
+.mission-card {
+  background-color: var(--card-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 20px;
+  padding: 30px;
+  transition: all 0.3s ease;
+}
+
+.mission-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.05);
+}
+
+/* Product Cards */
+.product-card {
+  background-color: var(--card-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 20px;
+  overflow: hidden;
+  transition: all 0.3s ease;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.product-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.08);
+}
+
+.product-img-wrapper {
+  position: relative;
+  aspect-ratio: 1 / 1;
+  overflow: hidden;
+  background-color: var(--surface-color);
+  cursor: pointer;
+}
+
+.product-img-wrapper img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.5s ease;
+}
+
+.product-card:hover .product-img-wrapper img {
+  transform: scale(1.05);
+}
+
+.product-badge {
+  position: absolute;
+  top: 15px;
+  left: 15px;
+  z-index: 10;
+  font-family: var(--font-sans);
+  font-weight: 700;
+  text-transform: uppercase;
+  font-size: 10px;
+  letter-spacing: 0.05em;
+}
+
+/* Floating Elements */
+.floating-container {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  align-items: flex-end;
+}
+
+.btn-whatsapp-float {
+  width: 56px;
+  height: 56px;
+  background-color: var(--accent-color);
+  color: #ffffff;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 6px 20px rgba(37, 211, 102, 0.3);
+  transition: all 0.3s ease;
+  text-decoration: none;
+}
+
+.btn-whatsapp-float:hover {
+  background-color: var(--accent-hover);
+  color: #ffffff;
+  transform: scale(1.08);
+}
+
+/* Pulsing effect for WhatsApp float */
+@keyframes pulse-ring {
+  0% {
+    box-shadow: 0 0 0 0 rgba(37, 211, 102, 0.7);
+  }
+  70% {
+    box-shadow: 0 0 0 15px rgba(37, 211, 102, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(37, 211, 102, 0);
+  }
+}
+
+.btn-whatsapp-float {
+  animation: pulse-ring 3s infinite;
+}
+
+.btn-back-to-top {
+  width: 44px;
+  height: 44px;
+  background-color: var(--card-bg);
+  color: var(--text-color);
+  border: 1px solid var(--border-color);
+  border-radius: 50%;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.btn-back-to-top.show {
+  display: flex;
+}
+
+.btn-back-to-top:hover {
+  background-color: var(--primary-color);
+  color: #ffffff;
+  transform: translateY(-2px);
+}
+
+/* Dark mode toggler button */
+.theme-toggle-btn {
+  background: none;
+  border: none;
+  color: var(--text-color);
+  padding: 8px;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.theme-toggle-btn:hover {
+  background-color: var(--border-color);
+}
+
+/* PWA Banner */
+.pwa-banner {
+  position: fixed;
+  top: 90px;
+  right: 24px;
+  z-index: 1050;
+  width: 350px;
+  max-width: 90vw;
+  background-color: var(--card-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 16px;
+  box-shadow: 0 15px 50px rgba(0, 0, 0, 0.15);
+  display: none;
+}
+
+/* Lightbox spec helper */
+.lightbox-modal {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.7);
+  z-index: 1100;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  backdrop-filter: blur(8px);
+}
+
+.lightbox-modal.show {
+  display: flex;
+}
+
+.lightbox-content {
+  background-color: var(--modal-bg);
+  border-radius: 24px;
+  max-width: 900px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  border: 1px solid var(--border-color);
+  position: relative;
+}
+
+/* Helper to hide scrollbar */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Custom stats */
+.stat-item {
+  background-color: var(--surface-color);
+  border: 1px solid var(--border-color);
+  border-radius: 16px;
+}

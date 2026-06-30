@@ -1,0 +1,17 @@
+{
+  "name": "PT. Dimas Febry Prasetyo",
+  "short_name": "Dimas Plastik",
+  "description": "Pabrik Plastik Injection Molding Terpercaya Sejak 2014 di Pasuruan, Jawa Timur.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#0D6EFD",
+  "icons": [
+    {
+      "src": "/assets/images/company_logo_1782833384783.jpg",
+      "sizes": "512x512",
+      "type": "image/jpeg",
+      "purpose": "any maskable"
+    }
+  ]
+}
