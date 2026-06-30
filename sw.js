@@ -1,5 +1,5 @@
-const CACHE_NAME = "dimas-plastik-cache-v2";
-const ASSETS_TO_CACHE = [
+const CACHE_NAME = "dimas-plastik-v3";
+const ASSETS = [
   "/",
   "/index.html",
   "/manifest.json",
@@ -9,71 +9,64 @@ const ASSETS_TO_CACHE = [
   "/assets/images/factory_hero_1782833328154.jpg",
   "/assets/images/product_bucket_1782833343452.jpg",
   "/assets/images/product_hanger_1782833357569.jpg",
-  "/assets/images/product_basin_1782833370507.jpg"
+  "/assets/images/product_basin_1782833370507.jpg",
 ];
 
-// Install Event
-self.addEventListener("install", (event) => {
-  event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => {
-      console.log("[Service Worker] Caching all static shell assets");
-      return cache.addAll(ASSETS_TO_CACHE);
-    }).then(() => self.skipWaiting())
+self.addEventListener("install", (e) => {
+  e.waitUntil(
+    caches
+      .open(CACHE_NAME)
+      .then((cache) => cache.addAll(ASSETS))
+      .then(() => self.skipWaiting())
   );
 });
 
-// Activate Event
-self.addEventListener("activate", (event) => {
-  event.waitUntil(
-    caches.keys().then((keys) => {
-      return Promise.all(
-        keys.map((key) => {
-          if (key !== CACHE_NAME) {
-            console.log("[Service Worker] Removing old cache", key);
-            return caches.delete(key);
-          }
-        })
-      );
-    }).then(() => self.clients.claim())
+self.addEventListener("activate", (e) => {
+  e.waitUntil(
+    caches
+      .keys()
+      .then((keys) => {
+        return Promise.all(
+          keys
+            .filter((key) => key !== CACHE_NAME)
+            .map((key) => caches.delete(key))
+        );
+      })
+      .then(() => self.clients.claim())
   );
 });
 
-// Fetch Event
-self.addEventListener("fetch", (event) => {
-  const requestUrl = new URL(event.request.url);
+self.addEventListener("fetch", (e) => {
+  const url = new URL(e.request.url);
 
-  // For HTML pages (Network First, falling back to cache)
-  if (event.request.mode === "navigate" || requestUrl.pathname.endsWith(".html") || requestUrl.pathname === "/") {
-    event.respondWith(
-      fetch(event.request)
-        .then((response) => {
-          const responseClone = response.clone();
-          caches.open(CACHE_NAME).then((cache) => {
-            cache.put(event.request, responseClone);
-          });
-          return response;
+  // HTML: Network first, fallback cache
+  if (
+    e.request.mode === "navigate" ||
+    url.pathname === "/" ||
+    url.pathname.endsWith(".html")
+  ) {
+    e.respondWith(
+      fetch(e.request)
+        .then((res) => {
+          const clone = res.clone();
+          caches.open(CACHE_NAME).then((cache) => cache.put(e.request, clone));
+          return res;
         })
-        .catch(() => {
-          return caches.match("/index.html") || caches.match(event.request);
-        })
+        .catch(() => caches.match(e.request) || caches.match("/index.html"))
     );
     return;
   }
 
-  // For static assets (Cache First, Network Fallback)
-  event.respondWith(
-    caches.match(event.request).then((cachedResponse) => {
-      if (cachedResponse) {
-        return cachedResponse;
-      }
-      return fetch(event.request).then((networkResponse) => {
-        if (networkResponse && networkResponse.status === 200 && networkResponse.type === "basic") {
-          const responseClone = networkResponse.clone();
-          caches.open(CACHE_NAME).then((cache) => {
-            cache.put(event.request, responseClone);
-          });
+  // Static assets: Cache first, fallback network
+  e.respondWith(
+    caches.match(e.request).then((cached) => {
+      if (cached) return cached;
+      return fetch(e.request).then((res) => {
+        if (res && res.status === 200) {
+          const clone = res.clone();
+          caches.open(CACHE_NAME).then((cache) => cache.put(e.request, clone));
         }
-        return networkResponse;
+        return res;
       });
     })
   );

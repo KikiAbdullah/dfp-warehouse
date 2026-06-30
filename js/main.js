@@ -1,374 +1,428 @@
-/* PT. Dimas Febry Prasetyo - Website Company Profile 2026 */
+/* PT. Dimas Febry Prasetyo - Website Company Profile 2026 v3.0 */
 
 document.addEventListener("DOMContentLoaded", () => {
-  // 1. Dark Mode State Engine
+  // ================================================================
+  // 1. LOADING SCREEN
+  // ================================================================
+  const loadingScreen = document.getElementById("loadingScreen");
+  if (loadingScreen) {
+    window.addEventListener("load", () => {
+      setTimeout(() => {
+        loadingScreen.style.opacity = "0";
+        setTimeout(() => {
+          loadingScreen.style.display = "none";
+        }, 600);
+      }, 400);
+    });
+  }
+
+  // ================================================================
+  // 2. THEME ENGINE
+  // ================================================================
   const themeToggleBtns = document.querySelectorAll(".theme-toggle-btn");
   const htmlElement = document.documentElement;
 
   const getSavedTheme = () => {
     const saved = localStorage.getItem("theme");
     if (saved) return saved;
-    return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+    return window.matchMedia("(prefers-color-scheme: dark)").matches
+      ? "dark"
+      : "light";
   };
 
   const applyTheme = (theme) => {
     htmlElement.setAttribute("data-bs-theme", theme);
     localStorage.setItem("theme", theme);
-    
-    // Update icons for togglers
-    themeToggleBtns.forEach(btn => {
-      const sunIcon = btn.querySelector(".lucide-sun");
-      const moonIcon = btn.querySelector(".lucide-moon");
+    themeToggleBtns.forEach((btn) => {
+      const sun = btn.querySelector(".lucide-sun");
+      const moon = btn.querySelector(".lucide-moon");
       if (theme === "dark") {
-        if (sunIcon) sunIcon.classList.remove("d-none");
-        if (moonIcon) moonIcon.classList.add("d-none");
+        if (sun) sun.classList.remove("d-none");
+        if (moon) moon.classList.add("d-none");
       } else {
-        if (sunIcon) sunIcon.classList.add("d-none");
-        if (moonIcon) moonIcon.classList.remove("d-none");
+        if (sun) sun.classList.add("d-none");
+        if (moon) moon.classList.remove("d-none");
       }
     });
+    // Re-init Lucide icons after theme change
+    if (window.lucide) lucide.createIcons();
   };
 
-  // Set initial theme
   applyTheme(getSavedTheme());
 
-  themeToggleBtns.forEach(btn => {
+  themeToggleBtns.forEach((btn) => {
     btn.addEventListener("click", () => {
-      const currentTheme = htmlElement.getAttribute("data-bs-theme");
-      const nextTheme = currentTheme === "dark" ? "light" : "dark";
-      applyTheme(nextTheme);
+      const current = htmlElement.getAttribute("data-bs-theme");
+      applyTheme(current === "dark" ? "light" : "dark");
+      showToast("Tema berhasil diubah", "info");
     });
   });
 
-
-  // 2. Navbar Scrolling Effects
+  // ================================================================
+  // 3. NAVBAR SCROLL + PROGRESS BAR
+  // ================================================================
   const navbar = document.querySelector(".navbar-custom");
+  const progressBar = document.getElementById("scrollProgress");
+
   const handleScroll = () => {
-    if (window.scrollY > 50) {
-      navbar.classList.add("scrolled");
-    } else {
-      navbar.classList.remove("scrolled");
+    const scrollY = window.scrollY;
+    const docHeight =
+      document.documentElement.scrollHeight - window.innerHeight;
+
+    if (navbar) {
+      navbar.classList.toggle("scrolled", scrollY > 50);
+    }
+    if (progressBar) {
+      const progress = docHeight > 0 ? (scrollY / docHeight) * 100 : 0;
+      progressBar.style.width = Math.min(progress, 100) + "%";
     }
 
-    // Scroll To Top button visibility
-    const backToTopBtn = document.getElementById("backToTopBtn");
-    if (backToTopBtn) {
-      if (window.scrollY > 400) {
-        backToTopBtn.classList.add("show");
-      } else {
-        backToTopBtn.classList.remove("show");
-      }
+    const backToTop = document.getElementById("backToTopBtn");
+    if (backToTop) {
+      backToTop.classList.toggle("show", scrollY > 400);
     }
   };
 
   window.addEventListener("scroll", handleScroll);
   handleScroll();
 
-
-  // 3. Active Nav Links Highlight on Scroll (Intersection Observer)
+  // ================================================================
+  // 4. ACTIVE NAV LINKS (Intersection Observer)
+  // ================================================================
   const navLinks = document.querySelectorAll(".nav-link-custom");
   const sections = document.querySelectorAll("section");
 
-  const observerOptions = {
-    root: null,
-    rootMargin: "-20% 0px -60% 0px",
-    threshold: 0
-  };
+  const observer = new IntersectionObserver(
+    (entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          const id = entry.target.id;
+          navLinks.forEach((link) => {
+            const target = link.getAttribute("data-target");
+            if (target === id) {
+              link.classList.add("active", "text-primary");
+              link.classList.remove("text-secondary-emphasis");
+            } else {
+              link.classList.remove("active", "text-primary");
+              link.classList.add("text-secondary-emphasis");
+            }
+          });
+        }
+      });
+    },
+    { root: null, rootMargin: "-20% 0px -60% 0px", threshold: 0 }
+  );
 
-  const observer = new IntersectionObserver((entries) => {
-    entries.forEach(entry => {
-      if (entry.isIntersecting) {
-        const id = entry.target.getAttribute("id");
-        navLinks.forEach(link => {
-          if (link.getAttribute("data-target") === id) {
-            link.classList.add("active", "text-primary");
-            link.classList.remove("text-secondary-emphasis");
-          } else {
-            link.classList.remove("active", "text-primary");
-            link.classList.add("text-secondary-emphasis");
-          }
-        });
-      }
-    });
-  }, observerOptions);
+  sections.forEach((s) => observer.observe(s));
 
-  sections.forEach(section => observer.observe(section));
-
-
-  // 4. Smooth Scrolling to Sections
-  navLinks.forEach(link => {
+  // ================================================================
+  // 5. SMOOTH SCROLL
+  // ================================================================
+  navLinks.forEach((link) => {
     link.addEventListener("click", (e) => {
       e.preventDefault();
       const targetId = link.getAttribute("data-target");
-      const targetSection = document.getElementById(targetId);
-      
-      // Close offcanvas drawer if open
-      const offcanvasElement = document.getElementById("mobileNavDrawer");
-      if (offcanvasElement) {
-        const bsOffcanvas = bootstrap.Offcanvas.getInstance(offcanvasElement);
+      const target = document.getElementById(targetId);
+      const offcanvas = document.getElementById("mobileNavDrawer");
+      if (offcanvas) {
+        const bsOffcanvas = bootstrap.Offcanvas.getInstance(offcanvas);
         if (bsOffcanvas) bsOffcanvas.hide();
       }
-
-      if (targetSection) {
-        const offset = 80; // height of our fixed navbar
-        const bodyRect = document.body.getBoundingClientRect().top;
-        const elementRect = targetSection.getBoundingClientRect().top;
-        const elementPosition = elementRect - bodyRect;
-        const offsetPosition = elementPosition - offset;
-
+      if (target) {
+        const offset = 80;
         window.scrollTo({
-          top: offsetPosition,
-          behavior: "smooth"
+          top: target.getBoundingClientRect().top + window.scrollY - offset,
+          behavior: "smooth",
         });
       }
     });
   });
 
+  // ================================================================
+  // 6. BACK TO TOP
+  // ================================================================
+  document.getElementById("backToTopBtn")?.addEventListener("click", () => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  });
 
-  // 5. Catalog Filtration Logic
+  // ================================================================
+  // 7. PRODUCT DATA
+  // ================================================================
   const products = [
     {
       id: "ember-pt-20",
       name: "Ember Serbaguna PT-20",
       category: "ember",
       image: "/assets/images/product_bucket_1782833343452.jpg",
-      description: "Ember rumah tangga premium dengan ketebalan ekstra dan gagang logam galvanis antikarat yang kuat.",
-      material: "100% Polypropylene Orisinil (PP-5)",
+      description:
+        "Ember rumah tangga premium dengan ketebalan ekstra dan gagang logam galvanis antikarat.",
+      material: "Polypropylene Orisinil (PP-5)",
       dimensi: "Diameter 34 cm, Tinggi 32 cm",
       volume: "20 Liter",
       colors: ["Merah Cerah", "Biru Royal", "Hijau Daun", "Kuning Kenari"],
       perks: [
-        "Gagang besi kokoh dengan selang plastik pelindung telapak tangan",
-        "Kombinasi bahan elastis tinggi, tidak pecah saat jatuh penuh air",
-        "Mulut ember memiliki corong tuang presisi mengurangi cipratan",
-        "Aman untuk penampungan air minum domestik (Food Grade)"
+        "Gagang besi kokoh dengan selang plastik pelindung",
+        "Elastis tinggi, tidak pecah saat jatuh",
+        "Mulut ember presisi mengurangi cipratan",
+        "Food Grade aman untuk air minum",
       ],
       status: "Stok Tersedia",
-      badgeClass: "bg-success"
+      badgeClass: "bg-success",
     },
     {
       id: "hanger-h-12",
       name: "Hanger Baju Premium H-12",
       category: "hanger",
       image: "/assets/images/product_hanger_1782833357569.jpg",
-      description: "Gantungan baju antibengkok berperekat anti-selip pada bahu, menjaga kerapian pakaian Anda sepanjang waktu.",
-      material: "Polyethylene High Density Orisinil (HDPE)",
-      dimensi: "Lebar 41 cm, Tinggi 20 cm, Tebal 8 mm",
+      description:
+        "Gantungan baju antibengkok berperekat anti-selip pada bahu.",
+      material: "HDPE Orisinil",
+      dimensi: "Lebar 41 cm, Tinggi 20 cm",
       volume: "N/A",
-      colors: ["Biru Royal", "Hitam Solid", "Abu-Abu Modern", "Putih Bersih"],
+      colors: ["Biru Royal", "Hitam Solid", "Abu-Abu", "Putih"],
       perks: [
-        "Bahu antigelincir (non-slip grooves) untuk gaun bertali tipis",
-        "Hook melengkung kuat menahan beban jas tebal hingga 5 kg",
-        "Dilengkapi bar tengah untuk gantungan celana/syal terintegrasi",
-        "Tahan paparan sinar matahari langsung (anti-UV) tidak mudah rapuh"
+        "Bahu antigelincir (non-slip grooves)",
+        "Hook kuat menahan beban 5 kg",
+        "Bar tengah untuk celana/syal",
+        "Anti-UV tidak mudah rapuh",
       ],
       status: "Pesan Grosir",
-      badgeClass: "bg-primary"
+      badgeClass: "bg-primary",
     },
     {
       id: "baskom-b-35",
       name: "Baskom Cuci Serbaguna B-35",
       category: "baskom",
       image: "/assets/images/product_basin_1782833370507.jpg",
-      description: "Baskom cuci berdiameter sedang dengan bibir luar melengkung kokoh yang ergonomis saat diangkat.",
-      material: "High-grade Polypropylene Orisinil (PP)",
+      description:
+        "Baskom cuci dengan bibir luar melengkung kokoh dan ergonomis.",
+      material: "Polypropylene Orisinil (PP)",
       dimensi: "Diameter 35 cm, Tinggi 14 cm",
       volume: "8.5 Liter",
-      colors: ["Hijau Emerald", "Toska Elegan", "Pink Pastel", "Biru Laut"],
+      colors: ["Hijau Emerald", "Toska", "Pink Pastel", "Biru Laut"],
       perks: [
-        "Ketebalan dinding baskom mencapai 2.5mm, sangat tegar",
-        "Bawah baskom bertekstur kasar mencegah selip di ubin licin",
-        "Sisi dalam licin sempurna memudahkan pencucian residu sabun",
-        "Sangat serbaguna untuk mencuci pakaian, sayuran, maupun adonan makanan"
+        "Ketebalan dinding 2.5mm, sangat tegar",
+        "Bawah bertekstur anti-selip",
+        "Sisi dalam licin memudahkan pencucian",
+        "Serbaguna untuk cuci pakaian & sayuran",
       ],
       status: "Stok Tersedia",
-      badgeClass: "bg-success"
+      badgeClass: "bg-success",
     },
     {
       id: "ember-jumbo-ej-80",
       name: "Ember Jumbo Industri EJ-80",
       category: "ember",
       image: "/assets/images/product_bucket_1782833343452.jpg",
-      description: "Ember penampungan air industri tebal kapasitas jumbo dengan penutup rapat ganda.",
-      material: "Copopolymer PP Berkepadatan Tinggi (Impact Resistant)",
+      description:
+        "Ember penampungan air industri tebal kapasitas jumbo dengan penutup rapat.",
+      material: "Copolymer PP Impact Resistant",
       dimensi: "Diameter 52 cm, Tinggi 58 cm",
       volume: "80 Liter",
       colors: ["Hitam Industri", "Biru Pekat", "Abu-Abu Baja"],
       perks: [
-        "Gagang samping ganda yang terintegrasi (molded-in) tahan beban 100 kg",
-        "Dilengkapi tutup kedap udara dengan sekrup pengunci opsional",
-        "Sangat tahan terhadap benturan keras dan zat kimia encer",
-        "Ideal untuk pergudangan, restoran, katering, maupun area konstruksi"
+        "Gagang samping ganda molded-in beban 100 kg",
+        "Tutup kedap udara dengan sekrup pengunci",
+        "Tahan benturan keras dan zat kimia",
+        "Ideal untuk pergudangan & konstruksi",
       ],
       status: "Hubungi Sales",
-      badgeClass: "bg-warning text-dark"
-    }
+      badgeClass: "bg-warning text-dark",
+    },
   ];
 
-  const filterButtons = document.querySelectorAll(".filter-btn");
+  // ================================================================
+  // 8. RENDER PRODUCTS + SEARCH + FILTER
+  // ================================================================
   const catalogGrid = document.getElementById("catalogGrid");
+  const noResults = document.getElementById("noResults");
+  const searchInput = document.getElementById("productSearch");
+  const filterButtons = document.querySelectorAll(".filter-btn");
 
-  const renderProducts = (categoryFilter) => {
+  let currentFilter = "semua";
+  let currentSearch = "";
+
+  const renderProducts = () => {
     if (!catalogGrid) return;
     catalogGrid.innerHTML = "";
 
-    const filtered = categoryFilter === "semua" 
-      ? products 
-      : products.filter(p => p.category === categoryFilter);
+    const filtered = products.filter((p) => {
+      const matchCategory =
+        currentFilter === "semua" || p.category === currentFilter;
+      const matchSearch =
+        p.name.toLowerCase().includes(currentSearch.toLowerCase()) ||
+        p.category.toLowerCase().includes(currentSearch.toLowerCase()) ||
+        p.material.toLowerCase().includes(currentSearch.toLowerCase());
+      return matchCategory && matchSearch;
+    });
 
-    filtered.forEach(p => {
+    if (filtered.length === 0) {
+      if (noResults) noResults.classList.remove("d-none");
+      return;
+    }
+    if (noResults) noResults.classList.add("d-none");
+
+    filtered.forEach((p) => {
       const card = document.createElement("div");
       card.className = "col-md-6 col-lg-4";
       card.innerHTML = `
         <div class="product-card">
           <div class="product-img-wrapper">
             <span class="badge product-badge ${p.badgeClass}">${p.status}</span>
-            <img src="${p.image}" alt="${p.name}" class="product-img" referrerPolicy="no-referrer">
+            <img src="${p.image}" alt="${p.name}" loading="lazy" referrerPolicy="no-referrer">
           </div>
           <div class="p-4 flex-grow-1 d-flex flex-column justify-content-between">
             <div>
-              <span class="text-uppercase font-monospace text-primary fw-bold" style="font-size: 11px;">Kategori: ${p.category}</span>
-              <h4 class="mt-1 h5 text-truncate fw-bold">${p.name}</h4>
-              <p class="text-muted text-sm mt-2 font-sans" style="display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; font-size: 13px;">
-                ${p.description}
-              </p>
+              <span class="text-uppercase font-monospace text-primary fw-bold" style="font-size:11px;">${p.category}</span>
+              <h4 class="mt-1 h5 fw-bold text-truncate">${p.name}</h4>
+              <p class="text-muted mt-2" style="display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;font-size:13px;">${p.description}</p>
             </div>
-            
             <div class="border-top pt-3 mt-3">
-              <div class="d-flex justify-content-between font-monospace text-muted" style="font-size: 11px;">
-                <span>MATERIAL:</span>
-                <span class="text-secondary-emphasis fw-bold">Plastik PP Orisinil</span>
+              <div class="d-flex justify-content-between text-muted" style="font-size:11px;">
+                <span class="font-monospace">MATERIAL:</span>
+                <span class="text-secondary-emphasis fw-bold">${p.material}</span>
               </div>
-              <div class="d-flex justify-content-between font-monospace text-muted mt-1" style="font-size: 11px;">
-                <span>DIMENSI:</span>
-                <span class="text-secondary-emphasis fw-bold text-truncate" style="max-width: 150px;">${p.dimensi}</span>
+              <div class="d-flex justify-content-between text-muted mt-1" style="font-size:11px;">
+                <span class="font-monospace">DIMENSI:</span>
+                <span class="text-secondary-emphasis fw-bold text-truncate" style="max-width:150px;">${p.dimensi}</span>
               </div>
             </div>
-
-            <button class="btn btn-outline-primary btn-round w-full mt-3 py-2 fw-bold text-xs view-details-btn" data-id="${p.id}" style="font-size: 12px;">
-              Detail & Pesanan Grosir
-            </button>
+            <button class="btn btn-outline-primary btn-round w-100 mt-3 py-2 fw-bold view-details-btn" data-id="${p.id}" style="font-size:12px;">Detail & Pesan</button>
           </div>
         </div>
       `;
       catalogGrid.appendChild(card);
     });
 
-    // Add event listeners to newly rendered detail buttons
-    document.querySelectorAll(".view-details-btn").forEach(btn => {
+    // Attach events
+    document.querySelectorAll(".view-details-btn").forEach((btn) => {
       btn.addEventListener("click", () => {
-        const prodId = btn.getAttribute("data-id");
-        const found = products.find(p => p.id === prodId);
+        const found = products.find((p) => p.id === btn.dataset.id);
         if (found) openProductDetailModal(found);
       });
     });
-
-    // Add event listeners to newly rendered image click triggers as well
-    document.querySelectorAll(".product-img-wrapper").forEach((wrapper, idx) => {
-      wrapper.addEventListener("click", () => {
-        const prodId = filtered[idx].id;
-        const found = products.find(p => p.id === prodId);
+    document.querySelectorAll(".product-img-wrapper").forEach((w, idx) => {
+      w.addEventListener("click", () => {
+        const found = products.find((p) => p.id === filtered[idx]?.id);
         if (found) openProductDetailModal(found);
       });
     });
   };
 
-  // Add click events to filter buttons
-  filterButtons.forEach(btn => {
+  // Filter buttons
+  filterButtons.forEach((btn) => {
     btn.addEventListener("click", () => {
-      filterButtons.forEach(b => {
+      filterButtons.forEach((b) => {
         b.classList.remove("btn-primary", "text-white");
         b.classList.add("btn-outline-primary");
       });
       btn.classList.add("btn-primary", "text-white");
       btn.classList.remove("btn-outline-primary");
-
-      const filterValue = btn.getAttribute("data-filter");
-      renderProducts(filterValue);
+      currentFilter = btn.dataset.filter;
+      renderProducts();
     });
   });
 
-  // Initial products render
-  renderProducts("semua");
+  // Search
+  if (searchInput) {
+    searchInput.addEventListener("input", (e) => {
+      currentSearch = e.target.value.trim();
+      renderProducts();
+    });
+  }
 
+  // Initial render
+  renderProducts();
 
-  // 6. Interactive Detail Lightbox/Modal
+  // ================================================================
+  // 9. PRODUCT LIGHTBOX + QUANTITY SELECTOR
+  // ================================================================
   const lightbox = document.getElementById("productLightbox");
-  const lightboxClose = document.getElementById("lightboxClose");
-  const closeLightboxBtn = document.getElementById("closeLightboxBtn");
+  let currentQty = 1;
 
   const openProductDetailModal = (product) => {
     if (!lightbox) return;
+    currentQty = 1;
+    document.getElementById("qtyDisplay").textContent = "1";
 
-    // Fill details
-    document.getElementById("lb-image").setAttribute("src", product.image);
-    document.getElementById("lb-title").innerText = product.name;
-    document.getElementById("lb-description").innerText = product.description;
-    document.getElementById("lb-material").innerText = product.material;
-    document.getElementById("lb-dimensi").innerText = product.dimensi;
+    document.getElementById("lb-image").src = product.image;
+    document.getElementById("lb-title").textContent = product.name;
+    document.getElementById("lb-description").textContent = product.description;
+    document.getElementById("lb-material").textContent = product.material;
+    document.getElementById("lb-dimensi").textContent = product.dimensi;
 
-    const volumeRow = document.getElementById("lb-volume-row");
-    if (product.volume !== "N/A" && product.volume) {
-      document.getElementById("lb-volume").innerText = product.volume;
-      volumeRow.style.display = "flex";
+    const volRow = document.getElementById("lb-volume-row");
+    if (product.volume && product.volume !== "N/A") {
+      document.getElementById("lb-volume").textContent = product.volume;
+      volRow.style.display = "flex";
     } else {
-      volumeRow.style.display = "none";
+      volRow.style.display = "none";
     }
 
     // Perks
     const perksContainer = document.getElementById("lb-perks");
-    perksContainer.innerHTML = "";
-    product.perks.forEach(perk => {
-      const li = document.createElement("li");
-      li.innerText = perk;
-      perksContainer.appendChild(li);
-    });
+    if (perksContainer) {
+      perksContainer.innerHTML = "";
+      product.perks.forEach((perk) => {
+        const li = document.createElement("li");
+        li.textContent = perk;
+        perksContainer.appendChild(li);
+      });
+    }
 
-    // Varian Colors
+    // Colors
     const colorsContainer = document.getElementById("lb-colors");
     colorsContainer.innerHTML = "";
-    
-    let selectedColor = product.colors[0];
-
-    product.colors.forEach((color, idx) => {
-      const colBtn = document.createElement("button");
-      colBtn.className = `btn btn-sm btn-outline-secondary me-2 mb-2 ${idx === 0 ? "active text-primary fw-bold" : ""}`;
-      colBtn.innerText = color;
-      
-      colBtn.addEventListener("click", () => {
-        colorsContainer.querySelectorAll("button").forEach(b => {
+    let selectedColor = product.colors[0] || "Default";
+    product.colors.forEach((c, idx) => {
+      const btn = document.createElement("button");
+      btn.className = `btn btn-sm btn-outline-secondary me-2 mb-2 ${
+        idx === 0 ? "active text-primary fw-bold" : ""
+      }`;
+      btn.textContent = c;
+      btn.addEventListener("click", () => {
+        colorsContainer.querySelectorAll("button").forEach((b) => {
           b.classList.remove("active", "text-primary", "fw-bold");
         });
-        colBtn.classList.add("active", "text-primary", "fw-bold");
-        selectedColor = color;
-        // Update WhatsApp button link
+        btn.classList.add("active", "text-primary", "fw-bold");
+        selectedColor = c;
         updateWhatsAppLink(product, selectedColor);
       });
-
-      colorsContainer.appendChild(colBtn);
+      colorsContainer.appendChild(btn);
     });
 
-    // Create / Update WhatsApp Order link
-    const updateWhatsAppLink = (p, c) => {
-      const waButton = document.getElementById("lb-wa-btn");
-      if (!waButton) return;
-
+    const updateWhatsAppLink = (p, color) => {
+      const waBtn = document.getElementById("lb-wa-btn");
+      if (!waBtn) return;
       const phone = "6282210210020";
-      const text = `Halo PT. Dimas Febry Prasetyo, saya melihat katalog di website dan tertarik dengan produk:
+      const text = `Halo PT. Dimas Febry Prasetyo, saya tertarik dengan produk:
 
-- *Nama Produk*: ${p.name}
-- *Kategori*: ${p.category.toUpperCase()}
-- *Warna Pilihan*: ${c}
-- *Tujuan*: Permintaan Info Stok & Penawaran Harga Grosir (B2B)
+*Nama*: ${p.name}
+*Kategori*: ${p.category.toUpperCase()}
+*Warna*: ${color}
+*Jumlah*: ${currentQty} pcs
+*Tujuan*: Info stok & harga grosir (B2B)
 
-Mohon informasi harga partai besar dan minimal pembelian. Terima kasih.`;
-      
-      waButton.setAttribute("href", `https://wa.me/${phone}?text=${encodeURIComponent(text)}`);
+Mohon dibalas via WhatsApp. Terima kasih.`;
+      waBtn.href = `https://wa.me/${phone}?text=${encodeURIComponent(text)}`;
     };
+
+    // Quantity controls
+    document.getElementById("qtyDec").addEventListener("click", () => {
+      if (currentQty > 1) {
+        currentQty--;
+        document.getElementById("qtyDisplay").textContent = currentQty;
+        updateWhatsAppLink(product, selectedColor);
+      }
+    });
+    document.getElementById("qtyInc").addEventListener("click", () => {
+      currentQty++;
+      document.getElementById("qtyDisplay").textContent = currentQty;
+      updateWhatsAppLink(product, selectedColor);
+    });
 
     updateWhatsAppLink(product, selectedColor);
 
-    // Show Lightbox Modal
     lightbox.classList.add("show");
     document.body.style.overflow = "hidden";
   };
@@ -380,95 +434,194 @@ Mohon informasi harga partai besar dan minimal pembelian. Terima kasih.`;
     }
   };
 
-  if (lightboxClose) lightboxClose.addEventListener("click", closeLightbox);
-  if (closeLightboxBtn) closeLightboxBtn.addEventListener("click", closeLightbox);
-  
-  if (lightbox) {
-    lightbox.addEventListener("click", (e) => {
-      if (e.target === lightbox) closeLightbox();
-    });
-  }
-
-
-  // 7. Contact Form Quick Submission Simulation
-  const contactForm = document.getElementById("contactForm");
-  const formSuccessAlert = document.getElementById("formSuccessAlert");
-
-  if (contactForm && formSuccessAlert) {
-    contactForm.addEventListener("submit", (e) => {
-      e.preventDefault();
-      
-      // Show instant simulation success state
-      formSuccessAlert.classList.remove("d-none");
-      contactForm.classList.add("d-none");
-
-      setTimeout(() => {
-        formSuccessAlert.classList.add("d-none");
-        contactForm.classList.remove("d-none");
-        contactForm.reset();
-      }, 5000);
-    });
-  }
-
-
-  // 8. Scroll To Top Click Function
-  const backToTopBtn = document.getElementById("backToTopBtn");
-  if (backToTopBtn) {
-    backToTopBtn.addEventListener("click", () => {
-      window.scrollTo({
-        top: 0,
-        behavior: "smooth"
-      });
-    });
-  }
-
-
-  // 9. Interactive PWA App Installation Installer
-  let deferredPrompt;
-  const pwaBanner = document.getElementById("pwaBanner");
-  const pwaInstallBtn = document.getElementById("pwaInstallBtn");
-  const pwaLaterBtn = document.getElementById("pwaLaterBtn");
-  const pwaCloseBtn = document.getElementById("pwaCloseBtn");
-
-  window.addEventListener("beforeinstallprompt", (e) => {
-    // Prevent default Chrome mobile installation bar
-    e.preventDefault();
-    deferredPrompt = e;
-
-    // Show custom engaged installer banner after 3.5 seconds
-    setTimeout(() => {
-      if (pwaBanner) pwaBanner.style.display = "block";
-    }, 3500);
+  document
+    .getElementById("lightboxClose")
+    ?.addEventListener("click", closeLightbox);
+  lightbox?.addEventListener("click", (e) => {
+    if (e.target === lightbox) closeLightbox();
   });
 
-  if (pwaInstallBtn) {
-    pwaInstallBtn.addEventListener("click", async () => {
-      if (!deferredPrompt) return;
-      deferredPrompt.prompt();
-      const { outcome } = await deferredPrompt.userChoice;
-      console.log(`User installation decision outcome: ${outcome}`);
-      deferredPrompt = null;
-      if (pwaBanner) pwaBanner.style.display = "none";
+  // ================================================================
+  // 10. CONTACT FORM
+  // ================================================================
+  const contactForm = document.getElementById("contactForm");
+  const formSuccess = document.getElementById("formSuccessAlert");
+  if (contactForm && formSuccess) {
+    contactForm.addEventListener("submit", (e) => {
+      e.preventDefault();
+      formSuccess.classList.remove("d-none");
+      contactForm.classList.add("d-none");
+      setTimeout(() => {
+        formSuccess.classList.add("d-none");
+        contactForm.classList.remove("d-none");
+        contactForm.reset();
+        showToast("Pesan berhasil dikirim! ✅", "success");
+      }, 4000);
     });
   }
 
-  const hidePwaBanner = () => {
-    if (pwaBanner) pwaBanner.style.display = "none";
-  };
-
-  if (pwaLaterBtn) pwaLaterBtn.addEventListener("click", hidePwaBanner);
-  if (pwaCloseBtn) pwaCloseBtn.addEventListener("click", hidePwaBanner);
-
-  // 10. Register Service Worker for Offline-First Capability
-  if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => {
-      navigator.serviceWorker.register('/sw.js')
-        .then((registration) => {
-          console.log('PWA Service Worker registered successfully:', registration.scope);
-        })
-        .catch((error) => {
-          console.error('PWA Service Worker registration failed:', error);
-        });
+  // ================================================================
+  // 11. NEWSLETTER
+  // ================================================================
+  const newsletterForm = document.getElementById("newsletterForm");
+  const newsletterSuccess = document.getElementById("newsletterSuccess");
+  if (newsletterForm && newsletterSuccess) {
+    newsletterForm.addEventListener("submit", (e) => {
+      e.preventDefault();
+      newsletterSuccess.classList.remove("d-none");
+      newsletterForm.reset();
+      setTimeout(() => newsletterSuccess.classList.add("d-none"), 4000);
+      showToast("Berhasil berlangganan newsletter! 📧", "success");
     });
   }
+
+  // ================================================================
+  // 12. LIVE CHAT TOGGLE
+  // ================================================================
+  const chatToggle = document.getElementById("liveChatToggle");
+  const chatWidget = document.getElementById("liveChatWidget");
+  const chatClose = document.getElementById("chatClose");
+
+  if (chatToggle && chatWidget) {
+    chatToggle.addEventListener("click", () => {
+      const isOpen = chatWidget.style.display === "block";
+      chatWidget.style.display = isOpen ? "none" : "block";
+    });
+    if (chatClose) {
+      chatClose.addEventListener("click", () => {
+        chatWidget.style.display = "none";
+      });
+    }
+    // Click outside to close
+    document.addEventListener("click", (e) => {
+      if (
+        chatWidget.style.display === "block" &&
+        !chatWidget.contains(e.target) &&
+        !chatToggle.contains(e.target)
+      ) {
+        chatWidget.style.display = "none";
+      }
+    });
+  }
+
+  // ================================================================
+  // 13. COOKIE CONSENT
+  // ================================================================
+  const cookieConsent = document.getElementById("cookieConsent");
+  const cookieAccept = document.getElementById("cookieAccept");
+  const cookieSettings = document.getElementById("cookieSettings");
+
+  if (cookieConsent && !localStorage.getItem("cookieConsent")) {
+    setTimeout(() => {
+      cookieConsent.style.display = "block";
+    }, 2000);
+  }
+
+  if (cookieAccept) {
+    cookieAccept.addEventListener("click", () => {
+      localStorage.setItem("cookieConsent", "accepted");
+      cookieConsent.style.display = "none";
+      showToast("Preferensi cookie disimpan 🍪", "info");
+    });
+  }
+  if (cookieSettings) {
+    cookieSettings.addEventListener("click", () => {
+      cookieConsent.style.display = "none";
+      // In production, show a settings modal
+      showToast("Pengaturan cookie dibuka", "info");
+    });
+  }
+
+  // ================================================================
+  // 14. TOAST NOTIFICATION SYSTEM
+  // ================================================================
+  function showToast(message, type = "info") {
+    const container = document.getElementById("toastContainer");
+    if (!container) return;
+    const toast = document.createElement("div");
+    toast.className = "toast-custom";
+    const colors = {
+      success: "#25d366",
+      info: "#0d6efd",
+      warning: "#ffc107",
+      error: "#dc3545",
+    };
+    const borderColor = colors[type] || colors.info;
+    toast.style.borderLeft = `4px solid ${borderColor}`;
+    toast.innerHTML = `
+      <div class="d-flex align-items-center gap-2">
+        <span>${message}</span>
+        <button class="btn btn-sm p-0 ms-auto text-muted" onclick="this.parentElement.parentElement.remove()" style="font-size:16px;">&times;</button>
+      </div>
+    `;
+    container.appendChild(toast);
+    setTimeout(() => {
+      if (toast.parentElement) toast.remove();
+    }, 4000);
+  }
+  window.showToast = showToast;
+
+  // ================================================================
+  // 15. PWA INSTALLATION
+  // ================================================================
+  let deferredPrompt;
+  window.addEventListener("beforeinstallprompt", (e) => {
+    e.preventDefault();
+    deferredPrompt = e;
+    const banner = document.getElementById("pwaBanner");
+    if (banner) {
+      setTimeout(() => {
+        banner.style.display = "block";
+      }, 4000);
+    }
+  });
+
+  document
+    .getElementById("pwaInstallBtn")
+    ?.addEventListener("click", async () => {
+      if (deferredPrompt) {
+        deferredPrompt.prompt();
+        const { outcome } = await deferredPrompt.userChoice;
+        console.log("PWA install outcome:", outcome);
+        deferredPrompt = null;
+        document.getElementById("pwaBanner").style.display = "none";
+      }
+    });
+
+  document.getElementById("pwaLaterBtn")?.addEventListener("click", () => {
+    document.getElementById("pwaBanner").style.display = "none";
+  });
+  document.getElementById("pwaCloseBtn")?.addEventListener("click", () => {
+    document.getElementById("pwaBanner").style.display = "none";
+  });
+
+  // ================================================================
+  // 16. SERVICE WORKER
+  // ================================================================
+  if ("serviceWorker" in navigator) {
+    window.addEventListener("load", () => {
+      navigator.serviceWorker
+        .register("/sw.js")
+        .then(() => console.log("SW registered"))
+        .catch(() => console.log("SW registration failed"));
+    });
+  }
+
+  // ================================================================
+  // 17. LANGUAGE TOGGLE (placeholder)
+  // ================================================================
+  document.querySelectorAll(".lang-toggle-btn").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const current = btn.textContent.trim();
+      btn.textContent = current === "EN" ? "ID" : "EN";
+      showToast(
+        `Bahasa diubah ke ${
+          btn.textContent === "EN" ? "English" : "Indonesia"
+        }`,
+        "info"
+      );
+    });
+  });
+
+  console.log("✅ PT. Dimas Febry Prasetyo — Website v3.0 loaded");
 });
