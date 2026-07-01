@@ -1,0 +1,62 @@
+[
+  {
+    "nama_produk": "Elbow (Knee) AW 12 PVC SNI - Dragonex",
+    "harga": 40000,
+    "satuan": "gram",
+    "berat": 27,
+    "bahan": "PVC",
+    "warna": "biru",
+    "deskripsi": "Fitting elbow (knee) AW 1/2 inch dari merek Dragonex, terbuat dari bahan PVC berkualitas tinggi dengan aditif khusus. Telah memenuhi standar SNI sehingga kuat, tahan tekanan, dan tidak mudah bocor. Cocok untuk instalasi pipa air bersih maupun air kotor. Produk ini memberikan sambungan yang presisi dan tahan lama.",
+    "kategori": "fitting"
+  },
+  {
+    "nama_produk": "Pot Tanaman Plastik Tebal 15 cm - Hitam & Merah",
+    "harga": 20000,
+    "satuan": "cm",
+    "berat": 15,
+    "bahan": "Plastik Tebal",
+    "warna": "Hitam & merah",
+    "deskripsi": "Pot tanaman berbahan plastik tebal dan kokoh dengan diameter atas 15 cm, diameter bawah 9,5 cm, dan tinggi 11 cm. Tersedia dalam pilihan warna hitam dan merah yang modern. Cocok untuk berbagai jenis tanaman hias indoor maupun outdoor. Desain sederhana namun elegan, ringan dan mudah dipindahkan.",
+    "kategori": "pot"
+  },
+  {
+    "nama_produk": "Pot Tanaman Plastik Tebal 17 cm - Hitam & Merah",
+    "harga": 40000,
+    "satuan": "cm",
+    "berat": 17,
+    "bahan": "Plastik Tebal",
+    "warna": "Hitam & merah",
+    "deskripsi": "Pot tanaman berbahan plastik tebal berkualitas, berdimensi diameter atas 17 cm, diameter bawah 12 cm, dan tinggi 13 cm. Pilihan warna hitam dan merah yang estetik mempercantik tampilan tanaman kesayangan Anda. Tahan cuaca dan tidak mudah retak, ideal untuk dekorasi rumah atau taman.",
+    "kategori": "pot"
+  },
+  {
+    "nama_produk": "Hanger Baju Plastik HDPE TD - Kuat & Anti Karat",
+    "harga": 2000,
+    "satuan": "gram",
+    "berat": 33,
+    "bahan": "Resin Plastik HDPE",
+    "warna": null,
+    "deskripsi": "Gantungan baju (hanger) dari resin plastik HDPE berkualitas tinggi, didesain secara ergonomis dengan bentuk yang simple dan modern. Mampu menahan beban pakaian dengan baik tanpa melengkung. Tersedia dalam berbagai varian warna estetik untuk menambah kerapian dan keindahan lemari Anda. Anti karat dan aman untuk semua jenis pakaian.",
+    "kategori": "hanger"
+  },
+  {
+    "nama_produk": "Kaki Sofa Furniture BM 8 cm - Plastik PP + Baut Baja",
+    "harga": 2000,
+    "satuan": "gram",
+    "berat": 106,
+    "bahan": "Plastik Resin PP",
+    "warna": "-",
+    "deskripsi": "Kaki sofa berbahan biji plastik resin PP pilihan, diproduksi dengan presisi tinggi untuk daya tahan optimal. Tinggi 8 cm dengan diameter atas 7,5 cm dan bawah 5 cm. Dilengkapi baut hexagonal carbon steel berwarna hitam sepanjang 2,5 cm serta ring plat tebal 2 mm yang anti pecah. Desain minimalis dan elegan memberikan kesan mewah pada sofa Anda. Mudah dipasang dan kuat menopang beban.",
+    "kategori": "furniture"
+  },
+  {
+    "nama_produk": "Stik Permen Plastik DM 17 cm - Food Grade & Transparan",
+    "harga": 2000,
+    "satuan": "gram",
+    "berat": 2,
+    "bahan": "Akrilik & Polystyrene (Food Grade)",
+    "warna": null,
+    "deskripsi": "Stik plastik untuk permen atau kerajinan, terbuat dari campuran akrilik dan polystyrene (PS) food grade yang aman untuk makanan. Berwarna bening transparan dengan panjang 17 cm dan lebar 0,5 cm. Tidak mudah patah, fleksibel, dan cocok digunakan untuk lolipop, cake pop, atau berbagai kreasi DIY. Higienis dan bebas bahan berbahaya.",
+    "kategori": "craft"
+  }
+]

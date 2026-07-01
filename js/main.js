@@ -146,90 +146,36 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   // ================================================================
-  // 7. PRODUCT DATA
+  // 7. PRODUCT DATA - Load from a.json
   // ================================================================
-  const products = [
-    {
-      id: "ember-pt-20",
-      name: "Ember Serbaguna PT-20",
-      category: "ember",
-      image: "assets/images/product_bucket_1782833343452.jpg",
-      description:
-        "Ember rumah tangga premium dengan ketebalan ekstra dan gagang logam galvanis antikarat.",
-      material: "Polypropylene Orisinil (PP-5)",
-      dimensi: "Diameter 34 cm, Tinggi 32 cm",
-      volume: "20 Liter",
-      colors: ["Merah Cerah", "Biru Royal", "Hijau Daun", "Kuning Kenari"],
-      perks: [
-        "Gagang besi kokoh dengan selang plastik pelindung",
-        "Elastis tinggi, tidak pecah saat jatuh",
-        "Mulut ember presisi mengurangi cipratan",
-        "Food Grade aman untuk air minum",
-      ],
-      status: "Stok Tersedia",
-      badgeClass: "bg-success",
-    },
-    {
-      id: "hanger-h-12",
-      name: "Hanger Baju Premium H-12",
-      category: "hanger",
-      image: "assets/images/product_hanger_1782833357569.jpg",
-      description:
-        "Gantungan baju antibengkok berperekat anti-selip pada bahu.",
-      material: "HDPE Orisinil",
-      dimensi: "Lebar 41 cm, Tinggi 20 cm",
-      volume: "N/A",
-      colors: ["Biru Royal", "Hitam Solid", "Abu-Abu", "Putih"],
-      perks: [
-        "Bahu antigelincir (non-slip grooves)",
-        "Hook kuat menahan beban 5 kg",
-        "Bar tengah untuk celana/syal",
-        "Anti-UV tidak mudah rapuh",
-      ],
-      status: "Pesan Grosir",
-      badgeClass: "bg-primary",
-    },
-    {
-      id: "baskom-b-35",
-      name: "Baskom Cuci Serbaguna B-35",
-      category: "baskom",
-      image: "/assets/images/product_basin_1782833370507.jpg",
-      description:
-        "Baskom cuci dengan bibir luar melengkung kokoh dan ergonomis.",
-      material: "Polypropylene Orisinil (PP)",
-      dimensi: "Diameter 35 cm, Tinggi 14 cm",
-      volume: "8.5 Liter",
-      colors: ["Hijau Emerald", "Toska", "Pink Pastel", "Biru Laut"],
-      perks: [
-        "Ketebalan dinding 2.5mm, sangat tegar",
-        "Bawah bertekstur anti-selip",
-        "Sisi dalam licin memudahkan pencucian",
-        "Serbaguna untuk cuci pakaian & sayuran",
-      ],
-      status: "Stok Tersedia",
-      badgeClass: "bg-success",
-    },
-    {
-      id: "ember-jumbo-ej-80",
-      name: "Ember Jumbo Industri EJ-80",
-      category: "ember",
-      image: "assets/images/product_bucket_1782833343452.jpg",
-      description:
-        "Ember penampungan air industri tebal kapasitas jumbo dengan penutup rapat.",
-      material: "Copolymer PP Impact Resistant",
-      dimensi: "Diameter 52 cm, Tinggi 58 cm",
-      volume: "80 Liter",
-      colors: ["Hitam Industri", "Biru Pekat", "Abu-Abu Baja"],
-      perks: [
-        "Gagang samping ganda molded-in beban 100 kg",
-        "Tutup kedap udara dengan sekrup pengunci",
-        "Tahan benturan keras dan zat kimia",
-        "Ideal untuk pergudangan & konstruksi",
-      ],
-      status: "Hubungi Sales",
-      badgeClass: "bg-warning text-dark",
-    },
-  ];
+  let products = [];
+
+  const loadProducts = async () => {
+    try {
+      const response = await fetch("products.json");
+      const data = await response.json();
+      products = data.map((item) => {
+        const id = item.kategori.toLowerCase().replace(/\s+/g, "-");
+        return {
+          id: id,
+          name: item.nama_produk,
+          category: id,
+          image: `assets/images/product/${encodeURIComponent(item.nama_produk)}/thumb.png`,
+          description: item.deskripsi,
+          material: item.bahan,
+          harga: item.harga,
+          satuan: item.satuan,
+          berat: item.berat,
+          colors: item.warna && item.warna !== "-" ? [item.warna] : ["Standard"],
+          status: "Stok Tersedia",
+          badgeClass: "bg-success",
+        };
+      });
+    } catch (error) {
+      console.error("Failed to load products:", error);
+      products = [];
+    }
+  };
 
   // ================================================================
   // 8. RENDER PRODUCTS + SEARCH + FILTER
@@ -242,8 +188,9 @@ document.addEventListener("DOMContentLoaded", () => {
   let currentFilter = "semua";
   let currentSearch = "";
 
-  const renderProducts = () => {
+  const renderProducts = async () => {
     if (!catalogGrid) return;
+    await loadProducts(); // Ensure products are loaded
     catalogGrid.innerHTML = "";
 
     const filtered = products.filter((p) => {
@@ -269,25 +216,41 @@ document.addEventListener("DOMContentLoaded", () => {
         <div class="product-card">
           <div class="product-img-wrapper">
             <span class="badge product-badge ${p.badgeClass}">${p.status}</span>
-            <img src="${p.image}" alt="${p.name}" loading="lazy" referrerPolicy="no-referrer">
+            <img src="${p.image}" alt="${
+        p.name
+      }" loading="lazy" referrerPolicy="no-referrer">
           </div>
           <div class="p-4 flex-grow-1 d-flex flex-column justify-content-between">
             <div>
-              <span class="text-uppercase font-monospace text-primary fw-bold" style="font-size:11px;">${p.category}</span>
+              <span class="text-uppercase font-monospace text-primary fw-bold" style="font-size:11px;">${
+                p.category
+              }</span>
               <h4 class="mt-1 h5 fw-bold text-truncate">${p.name}</h4>
-              <p class="text-muted mt-2" style="display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;font-size:13px;">${p.description}</p>
+              <p class="text-muted mt-2" style="display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;font-size:13px;">${
+                p.description
+              }</p>
             </div>
             <div class="border-top pt-3 mt-3">
               <div class="d-flex justify-content-between text-muted" style="font-size:11px;">
                 <span class="font-monospace">MATERIAL:</span>
-                <span class="text-secondary-emphasis fw-bold">${p.material}</span>
+                <span class="text-secondary-emphasis fw-bold">${
+                  p.material
+                }</span>
               </div>
               <div class="d-flex justify-content-between text-muted mt-1" style="font-size:11px;">
-                <span class="font-monospace">DIMENSI:</span>
-                <span class="text-secondary-emphasis fw-bold text-truncate" style="max-width:150px;">${p.dimensi}</span>
+                <span class="font-monospace">HARGA:</span>
+                <span class="text-secondary-emphasis fw-bold">Rp ${p.harga.toLocaleString()}</span>
+              </div>
+              <div class="d-flex justify-content-between text-muted mt-1" style="font-size:11px;">
+                <span class="font-monospace">BERAT:</span>
+                <span class="text-secondary-emphasis fw-bold">${p.berat} ${
+        p.satuan
+      }</span>
               </div>
             </div>
-            <button class="btn btn-outline-primary btn-round w-100 mt-3 py-2 fw-bold view-details-btn" data-id="${p.id}" style="font-size:12px;">Detail & Pesan</button>
+            <button class="btn btn-outline-primary btn-round w-100 mt-3 py-2 fw-bold view-details-btn" data-id="${
+              p.id
+            }" style="font-size:12px;">Detail & Pesan</button>
           </div>
         </div>
       `;
@@ -349,31 +312,49 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById("lb-title").textContent = product.name;
     document.getElementById("lb-description").textContent = product.description;
     document.getElementById("lb-material").textContent = product.material;
-    document.getElementById("lb-dimensi").textContent = product.dimensi;
 
-    const volRow = document.getElementById("lb-volume-row");
-    if (product.volume && product.volume !== "N/A") {
-      document.getElementById("lb-volume").textContent = product.volume;
-      volRow.style.display = "flex";
-    } else {
-      volRow.style.display = "none";
+    // Hide dimensi row if not available
+    const dimensiEl = document.getElementById("lb-dimensi");
+    const dimensiRow = dimensiEl?.parentElement;
+    if (dimensiRow) {
+      if (product.dimensi) {
+        dimensiEl.textContent = product.dimensi;
+        dimensiRow.style.display = "flex";
+      } else {
+        dimensiRow.style.display = "none";
+      }
     }
 
-    // Perks
+    // Hide volume row if not available
+    const volRow = document.getElementById("lb-volume-row");
+    if (volRow) {
+      if (product.volume && product.volume !== "N/A") {
+        document.getElementById("lb-volume").textContent = product.volume;
+        volRow.style.display = "flex";
+      } else {
+        volRow.style.display = "none";
+      }
+    }
+
+    // Perks - hide if not available
     const perksContainer = document.getElementById("lb-perks");
     if (perksContainer) {
-      perksContainer.innerHTML = "";
-      product.perks.forEach((perk) => {
-        const li = document.createElement("li");
-        li.textContent = perk;
-        perksContainer.appendChild(li);
-      });
+      if (product.perks && product.perks.length > 0) {
+        perksContainer.innerHTML = "";
+        product.perks.forEach((perk) => {
+          const li = document.createElement("li");
+          li.textContent = perk;
+          perksContainer.appendChild(li);
+        });
+      } else {
+        perksContainer.innerHTML = "<li class='text-muted'>Tidak ada informasi tambahan</li>";
+      }
     }
 
     // Colors
     const colorsContainer = document.getElementById("lb-colors");
     colorsContainer.innerHTML = "";
-    let selectedColor = product.colors[0] || "Default";
+    let selectedColor = product.colors[0] || "Standard";
     product.colors.forEach((c, idx) => {
       const btn = document.createElement("button");
       btn.className = `btn btn-sm btn-outline-secondary me-2 mb-2 ${
@@ -461,51 +442,7 @@ Mohon dibalas via WhatsApp. Terima kasih.`;
   }
 
   // ================================================================
-  // 11. NEWSLETTER
-  // ================================================================
-  const newsletterForm = document.getElementById("newsletterForm");
-  const newsletterSuccess = document.getElementById("newsletterSuccess");
-  if (newsletterForm && newsletterSuccess) {
-    newsletterForm.addEventListener("submit", (e) => {
-      e.preventDefault();
-      newsletterSuccess.classList.remove("d-none");
-      newsletterForm.reset();
-      setTimeout(() => newsletterSuccess.classList.add("d-none"), 4000);
-      showToast("Berhasil berlangganan newsletter! 📧", "success");
-    });
-  }
-
-  // ================================================================
-  // 12. LIVE CHAT TOGGLE
-  // ================================================================
-  const chatToggle = document.getElementById("liveChatToggle");
-  const chatWidget = document.getElementById("liveChatWidget");
-  const chatClose = document.getElementById("chatClose");
-
-  if (chatToggle && chatWidget) {
-    chatToggle.addEventListener("click", () => {
-      const isOpen = chatWidget.style.display === "block";
-      chatWidget.style.display = isOpen ? "none" : "block";
-    });
-    if (chatClose) {
-      chatClose.addEventListener("click", () => {
-        chatWidget.style.display = "none";
-      });
-    }
-    // Click outside to close
-    document.addEventListener("click", (e) => {
-      if (
-        chatWidget.style.display === "block" &&
-        !chatWidget.contains(e.target) &&
-        !chatToggle.contains(e.target)
-      ) {
-        chatWidget.style.display = "none";
-      }
-    });
-  }
-
-  // ================================================================
-  // 13. COOKIE CONSENT
+  // 11. COOKIE CONSENT
   // ================================================================
   const cookieConsent = document.getElementById("cookieConsent");
   const cookieAccept = document.getElementById("cookieAccept");
@@ -606,22 +543,6 @@ Mohon dibalas via WhatsApp. Terima kasih.`;
         .catch(() => console.log("SW registration failed"));
     });
   }
-
-  // ================================================================
-  // 17. LANGUAGE TOGGLE (placeholder)
-  // ================================================================
-  document.querySelectorAll(".lang-toggle-btn").forEach((btn) => {
-    btn.addEventListener("click", () => {
-      const current = btn.textContent.trim();
-      btn.textContent = current === "EN" ? "ID" : "EN";
-      showToast(
-        `Bahasa diubah ke ${
-          btn.textContent === "EN" ? "English" : "Indonesia"
-        }`,
-        "info"
-      );
-    });
-  });
 
   console.log("✅ PT. Dimas Febry Prasetyo — Website v3.0 loaded");
 });
