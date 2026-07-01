@@ -10,13 +10,13 @@
   "categories": ["business", "shopping", "manufacturing"],
   "icons": [
     {
-      "src": "/assets/images/company_logo_1782833384783.jpg",
+      "src": "/dfp-warehouse/assets/images/company_logo_1782833384783.jpg",
       "sizes": "512x512",
       "type": "image/jpeg",
       "purpose": "any maskable"
     },
     {
-      "src": "/assets/images/company_logo_1782833384783.jpg",
+      "src": "/dfp-warehouse/assets/images/company_logo_1782833384783.jpg",
       "sizes": "192x192",
       "type": "image/jpeg",
       "purpose": "any"

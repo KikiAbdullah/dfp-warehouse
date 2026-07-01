@@ -153,7 +153,7 @@ document.addEventListener("DOMContentLoaded", () => {
       id: "ember-pt-20",
       name: "Ember Serbaguna PT-20",
       category: "ember",
-      image: "/assets/images/product_bucket_1782833343452.jpg",
+      image: "assets/images/product_bucket_1782833343452.jpg",
       description:
         "Ember rumah tangga premium dengan ketebalan ekstra dan gagang logam galvanis antikarat.",
       material: "Polypropylene Orisinil (PP-5)",
@@ -173,7 +173,7 @@ document.addEventListener("DOMContentLoaded", () => {
       id: "hanger-h-12",
       name: "Hanger Baju Premium H-12",
       category: "hanger",
-      image: "/assets/images/product_hanger_1782833357569.jpg",
+      image: "assets/images/product_hanger_1782833357569.jpg",
       description:
         "Gantungan baju antibengkok berperekat anti-selip pada bahu.",
       material: "HDPE Orisinil",
@@ -213,7 +213,7 @@ document.addEventListener("DOMContentLoaded", () => {
       id: "ember-jumbo-ej-80",
       name: "Ember Jumbo Industri EJ-80",
       category: "ember",
-      image: "/assets/images/product_bucket_1782833343452.jpg",
+      image: "assets/images/product_bucket_1782833343452.jpg",
       description:
         "Ember penampungan air industri tebal kapasitas jumbo dengan penutup rapat.",
       material: "Copolymer PP Impact Resistant",
