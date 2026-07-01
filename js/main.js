@@ -44,7 +44,6 @@ document.addEventListener("DOMContentLoaded", () => {
         if (moon) moon.classList.remove("d-none");
       }
     });
-    // Re-init Lucide icons after theme change
     if (window.lucide) lucide.createIcons();
   };
 
@@ -90,30 +89,32 @@ document.addEventListener("DOMContentLoaded", () => {
   // 4. ACTIVE NAV LINKS (Intersection Observer)
   // ================================================================
   const navLinks = document.querySelectorAll(".nav-link-custom");
-  const sections = document.querySelectorAll("section");
+  const sections = document.querySelectorAll("section[id]");
 
-  const observer = new IntersectionObserver(
-    (entries) => {
-      entries.forEach((entry) => {
-        if (entry.isIntersecting) {
-          const id = entry.target.id;
-          navLinks.forEach((link) => {
-            const target = link.getAttribute("data-target");
-            if (target === id) {
-              link.classList.add("active", "text-primary");
-              link.classList.remove("text-secondary-emphasis");
-            } else {
-              link.classList.remove("active", "text-primary");
-              link.classList.add("text-secondary-emphasis");
-            }
-          });
-        }
-      });
-    },
-    { root: null, rootMargin: "-20% 0px -60% 0px", threshold: 0 }
-  );
+  if (navLinks.length && sections.length) {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            const id = entry.target.id;
+            navLinks.forEach((link) => {
+              const target = link.getAttribute("data-target");
+              if (target === id) {
+                link.classList.add("active", "text-primary");
+                link.classList.remove("text-secondary-emphasis");
+              } else {
+                link.classList.remove("active", "text-primary");
+                link.classList.add("text-secondary-emphasis");
+              }
+            });
+          }
+        });
+      },
+      { root: null, rootMargin: "-20% 0px -60% 0px", threshold: 0 }
+    );
 
-  sections.forEach((s) => observer.observe(s));
+    sections.forEach((s) => observer.observe(s));
+  }
 
   // ================================================================
   // 5. SMOOTH SCROLL
@@ -146,51 +147,76 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   // ================================================================
-  // 7. PRODUCT DATA - Load from a.json
+  // 8. PRODUCT DATA - Load from products.json
   // ================================================================
   let products = [];
+  let productsLoaded = false;
 
   const loadProducts = async () => {
+    if (productsLoaded) return;
     try {
       const response = await fetch("products.json");
+      if (!response.ok) throw new Error("Failed to fetch products");
       const data = await response.json();
       products = data.map((item) => {
-        const id = item.kategori.toLowerCase().replace(/\s+/g, "-");
+        const id =
+          item.kategori.toLowerCase().replace(/\s+/g, "-") +
+          "-" +
+          item.nama_produk
+            .toLowerCase()
+            .replace(/[^a-z0-9]/g, "-")
+            .slice(0, 20);
         return {
           id: id,
           name: item.nama_produk,
-          category: id,
-          image: `assets/images/product/${encodeURIComponent(item.nama_produk)}/thumb.png`,
-          description: item.deskripsi,
-          material: item.bahan,
-          harga: item.harga,
-          satuan: item.satuan,
-          berat: item.berat,
-          colors: item.warna && item.warna !== "-" ? [item.warna] : ["Standard"],
+          category: item.kategori,
+          image: `assets/images/product/${encodeURIComponent(
+            item.nama_produk
+          )}/thumb.png`,
+          description: item.deskripsi || "Deskripsi produk tidak tersedia.",
+          material: item.bahan || "Plastik",
+          harga: item.harga || 0,
+          satuan: item.satuan || "pcs",
+          berat: item.berat || 0,
+          colors:
+            item.warna && item.warna !== "-" && item.warna !== null
+              ? item.warna.includes("&")
+                ? item.warna.split("&").map((c) => c.trim())
+                : [item.warna.trim()]
+              : ["Standard"],
+          dimensi: item.dimensi || null,
+          volume: item.volume || null,
+          perks: item.perks || [
+            "Bahan berkualitas tinggi",
+            "Tahan lama",
+            "Harga kompetitif",
+          ],
           status: "Stok Tersedia",
           badgeClass: "bg-success",
         };
       });
+      productsLoaded = true;
     } catch (error) {
       console.error("Failed to load products:", error);
       products = [];
+      showToast("Gagal memuat data produk", "error");
     }
   };
 
   // ================================================================
-  // 8. RENDER PRODUCTS + SEARCH + FILTER
+  // 9. RENDER PRODUCTS + SEARCH + FILTER
   // ================================================================
   const catalogGrid = document.getElementById("catalogGrid");
   const noResults = document.getElementById("noResults");
   const searchInput = document.getElementById("productSearch");
-  const filterButtons = document.querySelectorAll(".filter-btn");
 
   let currentFilter = "semua";
   let currentSearch = "";
 
   const renderProducts = async () => {
     if (!catalogGrid) return;
-    await loadProducts(); // Ensure products are loaded
+    await loadProducts();
+
     catalogGrid.innerHTML = "";
 
     const filtered = products.filter((p) => {
@@ -209,16 +235,17 @@ document.addEventListener("DOMContentLoaded", () => {
     }
     if (noResults) noResults.classList.add("d-none");
 
-    filtered.forEach((p) => {
+    filtered.forEach((p, index) => {
       const card = document.createElement("div");
       card.className = "col-md-6 col-lg-4";
+      card.setAttribute("data-product-id", p.id);
       card.innerHTML = `
         <div class="product-card">
-          <div class="product-img-wrapper">
+          <div class="product-img-wrapper" data-id="${p.id}">
             <span class="badge product-badge ${p.badgeClass}">${p.status}</span>
             <img src="${p.image}" alt="${
         p.name
-      }" loading="lazy" referrerPolicy="no-referrer">
+      }" loading="lazy" onerror="this.src='assets/images/favicon.png'">
           </div>
           <div class="p-4 flex-grow-1 d-flex flex-column justify-content-between">
             <div>
@@ -257,22 +284,27 @@ document.addEventListener("DOMContentLoaded", () => {
       catalogGrid.appendChild(card);
     });
 
-    // Attach events
+    // Attach events using data-id
     document.querySelectorAll(".view-details-btn").forEach((btn) => {
       btn.addEventListener("click", () => {
         const found = products.find((p) => p.id === btn.dataset.id);
         if (found) openProductDetailModal(found);
       });
     });
-    document.querySelectorAll(".product-img-wrapper").forEach((w, idx) => {
-      w.addEventListener("click", () => {
-        const found = products.find((p) => p.id === filtered[idx]?.id);
+
+    document.querySelectorAll(".product-img-wrapper").forEach((wrapper) => {
+      wrapper.addEventListener("click", () => {
+        const found = products.find((p) => p.id === wrapper.dataset.id);
         if (found) openProductDetailModal(found);
       });
     });
+
+    // Recreate Lucide icons for new elements
+    if (window.lucide) lucide.createIcons();
   };
 
   // Filter buttons
+  const filterButtons = document.querySelectorAll(".filter-btn");
   filterButtons.forEach((btn) => {
     btn.addEventListener("click", () => {
       filterButtons.forEach((b) => {
@@ -288,9 +320,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Search
   if (searchInput) {
+    let searchTimeout;
     searchInput.addEventListener("input", (e) => {
-      currentSearch = e.target.value.trim();
-      renderProducts();
+      clearTimeout(searchTimeout);
+      searchTimeout = setTimeout(() => {
+        currentSearch = e.target.value.trim();
+        renderProducts();
+      }, 300);
     });
   }
 
@@ -298,22 +334,28 @@ document.addEventListener("DOMContentLoaded", () => {
   renderProducts();
 
   // ================================================================
-  // 9. PRODUCT LIGHTBOX + QUANTITY SELECTOR
+  // 10. PRODUCT LIGHTBOX + QUANTITY SELECTOR
   // ================================================================
   const lightbox = document.getElementById("productLightbox");
   let currentQty = 1;
+  let selectedColor = "Standard";
 
   const openProductDetailModal = (product) => {
     if (!lightbox) return;
     currentQty = 1;
+    selectedColor = product.colors[0] || "Standard";
+
     document.getElementById("qtyDisplay").textContent = "1";
 
-    document.getElementById("lb-image").src = product.image;
+    const img = document.getElementById("lb-image");
+    img.src = product.image;
+    img.alt = product.name;
+
     document.getElementById("lb-title").textContent = product.name;
     document.getElementById("lb-description").textContent = product.description;
     document.getElementById("lb-material").textContent = product.material;
 
-    // Hide dimensi row if not available
+    // Dimensi
     const dimensiEl = document.getElementById("lb-dimensi");
     const dimensiRow = dimensiEl?.parentElement;
     if (dimensiRow) {
@@ -325,7 +367,7 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     }
 
-    // Hide volume row if not available
+    // Volume
     const volRow = document.getElementById("lb-volume-row");
     if (volRow) {
       if (product.volume && product.volume !== "N/A") {
@@ -336,25 +378,26 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     }
 
-    // Perks - hide if not available
+    // Perks
     const perksContainer = document.getElementById("lb-perks");
     if (perksContainer) {
+      perksContainer.innerHTML = "";
       if (product.perks && product.perks.length > 0) {
-        perksContainer.innerHTML = "";
         product.perks.forEach((perk) => {
           const li = document.createElement("li");
-          li.textContent = perk;
+          li.className = "d-flex align-items-start gap-2 mb-1";
+          li.innerHTML = `<i data-lucide="check-circle-2" class="text-primary mt-0.5" style="width:14px;height:14px;"></i><span>${perk}</span>`;
           perksContainer.appendChild(li);
         });
       } else {
-        perksContainer.innerHTML = "<li class='text-muted'>Tidak ada informasi tambahan</li>";
+        perksContainer.innerHTML =
+          "<li class='text-muted'>Tidak ada informasi tambahan</li>";
       }
     }
 
     // Colors
     const colorsContainer = document.getElementById("lb-colors");
     colorsContainer.innerHTML = "";
-    let selectedColor = product.colors[0] || "Standard";
     product.colors.forEach((c, idx) => {
       const btn = document.createElement("button");
       btn.className = `btn btn-sm btn-outline-secondary me-2 mb-2 ${
@@ -367,12 +410,36 @@ document.addEventListener("DOMContentLoaded", () => {
         });
         btn.classList.add("active", "text-primary", "fw-bold");
         selectedColor = c;
-        updateWhatsAppLink(product, selectedColor);
+        updateWhatsAppLink(product);
       });
       colorsContainer.appendChild(btn);
     });
 
-    const updateWhatsAppLink = (p, color) => {
+    // Quantity controls - remove old listeners by cloning
+    const qtyDec = document.getElementById("qtyDec");
+    const qtyInc = document.getElementById("qtyInc");
+    const qtyDisplay = document.getElementById("qtyDisplay");
+
+    const newQtyDec = qtyDec.cloneNode(true);
+    const newQtyInc = qtyInc.cloneNode(true);
+    qtyDec.parentNode.replaceChild(newQtyDec, qtyDec);
+    qtyInc.parentNode.replaceChild(newQtyInc, qtyInc);
+
+    newQtyDec.addEventListener("click", () => {
+      if (currentQty > 1) {
+        currentQty--;
+        qtyDisplay.textContent = currentQty;
+        updateWhatsAppLink(product);
+      }
+    });
+
+    newQtyInc.addEventListener("click", () => {
+      currentQty++;
+      qtyDisplay.textContent = currentQty;
+      updateWhatsAppLink(product);
+    });
+
+    const updateWhatsAppLink = (p) => {
       const waBtn = document.getElementById("lb-wa-btn");
       if (!waBtn) return;
       const phone = "6282210210020";
@@ -380,7 +447,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 *Nama*: ${p.name}
 *Kategori*: ${p.category.toUpperCase()}
-*Warna*: ${color}
+*Warna*: ${selectedColor || "Standard"}
 *Jumlah*: ${currentQty} pcs
 *Tujuan*: Info stok & harga grosir (B2B)
 
@@ -388,24 +455,12 @@ Mohon dibalas via WhatsApp. Terima kasih.`;
       waBtn.href = `https://wa.me/${phone}?text=${encodeURIComponent(text)}`;
     };
 
-    // Quantity controls
-    document.getElementById("qtyDec").addEventListener("click", () => {
-      if (currentQty > 1) {
-        currentQty--;
-        document.getElementById("qtyDisplay").textContent = currentQty;
-        updateWhatsAppLink(product, selectedColor);
-      }
-    });
-    document.getElementById("qtyInc").addEventListener("click", () => {
-      currentQty++;
-      document.getElementById("qtyDisplay").textContent = currentQty;
-      updateWhatsAppLink(product, selectedColor);
-    });
-
-    updateWhatsAppLink(product, selectedColor);
-
+    updateWhatsAppLink(product);
     lightbox.classList.add("show");
     document.body.style.overflow = "hidden";
+
+    // Recreate icons inside lightbox
+    if (window.lucide) setTimeout(() => lucide.createIcons(), 100);
   };
 
   const closeLightbox = () => {
@@ -422,8 +477,13 @@ Mohon dibalas via WhatsApp. Terima kasih.`;
     if (e.target === lightbox) closeLightbox();
   });
 
+  // Close lightbox with Escape key
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") closeLightbox();
+  });
+
   // ================================================================
-  // 10. CONTACT FORM
+  // 11. CONTACT FORM (jika ada)
   // ================================================================
   const contactForm = document.getElementById("contactForm");
   const formSuccess = document.getElementById("formSuccessAlert");
@@ -432,17 +492,17 @@ Mohon dibalas via WhatsApp. Terima kasih.`;
       e.preventDefault();
       formSuccess.classList.remove("d-none");
       contactForm.classList.add("d-none");
+      showToast("Pesan berhasil dikirim! ✅", "success");
       setTimeout(() => {
         formSuccess.classList.add("d-none");
         contactForm.classList.remove("d-none");
         contactForm.reset();
-        showToast("Pesan berhasil dikirim! ✅", "success");
       }, 4000);
     });
   }
 
   // ================================================================
-  // 11. COOKIE CONSENT
+  // 12. COOKIE CONSENT
   // ================================================================
   const cookieConsent = document.getElementById("cookieConsent");
   const cookieAccept = document.getElementById("cookieAccept");
@@ -451,7 +511,7 @@ Mohon dibalas via WhatsApp. Terima kasih.`;
   if (cookieConsent && !localStorage.getItem("cookieConsent")) {
     setTimeout(() => {
       cookieConsent.style.display = "block";
-    }, 2000);
+    }, 1500);
   }
 
   if (cookieAccept) {
@@ -461,16 +521,16 @@ Mohon dibalas via WhatsApp. Terima kasih.`;
       showToast("Preferensi cookie disimpan 🍪", "info");
     });
   }
+
   if (cookieSettings) {
     cookieSettings.addEventListener("click", () => {
       cookieConsent.style.display = "none";
-      // In production, show a settings modal
       showToast("Pengaturan cookie dibuka", "info");
     });
   }
 
   // ================================================================
-  // 14. TOAST NOTIFICATION SYSTEM
+  // 13. TOAST NOTIFICATION SYSTEM
   // ================================================================
   function showToast(message, type = "info") {
     const container = document.getElementById("toastContainer");
@@ -488,9 +548,13 @@ Mohon dibalas via WhatsApp. Terima kasih.`;
     toast.innerHTML = `
       <div class="d-flex align-items-center gap-2">
         <span>${message}</span>
-        <button class="btn btn-sm p-0 ms-auto text-muted" onclick="this.parentElement.parentElement.remove()" style="font-size:16px;">&times;</button>
+        <button class="btn btn-sm p-0 ms-auto text-muted" style="font-size:16px;">&times;</button>
       </div>
     `;
+    // Close button event
+    toast.querySelector("button")?.addEventListener("click", () => {
+      if (toast.parentElement) toast.remove();
+    });
     container.appendChild(toast);
     setTimeout(() => {
       if (toast.parentElement) toast.remove();
@@ -499,49 +563,72 @@ Mohon dibalas via WhatsApp. Terima kasih.`;
   window.showToast = showToast;
 
   // ================================================================
-  // 15. PWA INSTALLATION
+  // 14. PWA INSTALLATION
   // ================================================================
   let deferredPrompt;
+  const pwaBanner = document.getElementById("pwaBanner");
+  const pwaInstallBtn = document.getElementById("pwaInstallBtn");
+  const pwaLaterBtn = document.getElementById("pwaLaterBtn");
+  const pwaCloseBtn = document.getElementById("pwaCloseBtn");
+
   window.addEventListener("beforeinstallprompt", (e) => {
     e.preventDefault();
     deferredPrompt = e;
-    const banner = document.getElementById("pwaBanner");
-    if (banner) {
+    if (pwaBanner) {
       setTimeout(() => {
-        banner.style.display = "block";
-      }, 4000);
+        pwaBanner.style.display = "flex";
+      }, 3000);
     }
   });
 
-  document
-    .getElementById("pwaInstallBtn")
-    ?.addEventListener("click", async () => {
+  if (pwaInstallBtn) {
+    pwaInstallBtn.addEventListener("click", async () => {
       if (deferredPrompt) {
         deferredPrompt.prompt();
         const { outcome } = await deferredPrompt.userChoice;
         console.log("PWA install outcome:", outcome);
         deferredPrompt = null;
-        document.getElementById("pwaBanner").style.display = "none";
+        if (pwaBanner) pwaBanner.style.display = "none";
       }
     });
+  }
 
-  document.getElementById("pwaLaterBtn")?.addEventListener("click", () => {
-    document.getElementById("pwaBanner").style.display = "none";
-  });
-  document.getElementById("pwaCloseBtn")?.addEventListener("click", () => {
-    document.getElementById("pwaBanner").style.display = "none";
-  });
+  if (pwaLaterBtn) {
+    pwaLaterBtn.addEventListener("click", () => {
+      if (pwaBanner) pwaBanner.style.display = "none";
+    });
+  }
+
+  if (pwaCloseBtn) {
+    pwaCloseBtn.addEventListener("click", () => {
+      if (pwaBanner) pwaBanner.style.display = "none";
+    });
+  }
 
   // ================================================================
-  // 16. SERVICE WORKER
+  // 15. SERVICE WORKER
   // ================================================================
   if ("serviceWorker" in navigator) {
     window.addEventListener("load", () => {
       navigator.serviceWorker
         .register("/sw.js")
-        .then(() => console.log("SW registered"))
-        .catch(() => console.log("SW registration failed"));
+        .then(() => console.log("✅ SW registered"))
+        .catch(() => console.log("⚠️ SW registration failed"));
     });
+  }
+
+  // ================================================================
+  // 16. AOS INIT
+  // ================================================================
+  if (typeof AOS !== "undefined") {
+    AOS.init({ duration: 800, once: true, offset: 100 });
+  }
+
+  // ================================================================
+  // 17. LUCIDE INIT
+  // ================================================================
+  if (typeof lucide !== "undefined") {
+    lucide.createIcons();
   }
 
   console.log("✅ PT. Dimas Febry Prasetyo — Website v3.0 loaded");

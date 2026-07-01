@@ -7,9 +7,7 @@ const ASSETS = [
   "/js/main.js",
   "/assets/images/favicon.png",
   "/assets/images/factory_hero.png",
-  "/assets/images/product_bucket_1782833343452.jpg",
-  "/assets/images/product_hanger_1782833357569.jpg",
-  "/assets/images/product_basin_1782833370507.jpg",
+  "/assets/images/og-image.jpg",
 ];
 
 self.addEventListener("install", (e) => {
